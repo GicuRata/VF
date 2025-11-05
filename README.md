@@ -1,5 +1,25 @@
 # VF
 
+Proiectul nostru cu MiniSat SAT Solver
+
+## Compilare
+
+```bash
+# Compilează solver-ul core
+cd minisat/core && export MROOT=$(pwd)/.. && make
+
+# Compilează solver-ul simp
+cd minisat/simp && export MROOT=$(pwd)/.. && make
+
+# Curăță compilarea
+make clean
+```
+
+## Utilizare
+
+### Comenzi de bază
+
+```bash
 # Rulează pe un fișier CNF (afișare în terminal)
 ./minisat/core/minisat problema.cnf
 
@@ -8,7 +28,11 @@
 
 # Folosește solver-ul simp cu preprocesare
 ./minisat/simp/minisat problema.cnf solutie.txt
+```
 
+### Opțiuni avansate
+
+```bash
 # Rulează cu nivel de verbozitate
 ./minisat/core/minisat problema.cnf -verb=2
 
@@ -23,12 +47,11 @@
 
 # Mod silențios
 ./minisat/core/minisat problema.cnf -verb=0
+```
 
-# Compilează solver-ul core
-cd minisat/core && export MROOT=minisat_path && make
+## Ajutor
 
-# Compilează solver-ul simp
-cd minisat/simp && export MROOT=minisat_path && make
-
-# Curăță compilarea
-make clean
+```bash
+./minisat/core/minisat --help
+./minisat/simp/minisat --help
+```
