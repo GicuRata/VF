@@ -1,0 +1,30 @@
+# Build artifacts
+*.o
+*.or
+*.od
+*.op
+*.a
+
+# MiniSat executables
+minisat/core/minisat
+minisat/core/minisat_static
+minisat/core/minisat_profile
+minisat/simp/minisat
+minisat/simp/minisat_static
+minisat/simp/minisat_profile
+
+# Dependency files
+*.d
+.depend.mk
+depend.mk
+
+# Editor/IDE files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
