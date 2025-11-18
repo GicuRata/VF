@@ -1,16 +1,24 @@
+#!/bin/bash
+
 # Directory paths
 BENCHMARKS_DIR="./benchmarks"
 RESULTS_DIR="./results"
 
-# Create results directory if it doesn't exist
+# --- CONFIGURATION ---
+# Define the range of files to process, sorted by size.
+START_INDEX=10
+END_INDEX=20
+
 mkdir -p "$RESULTS_DIR"
 
-# Find the first 10 smallest files in ./benchmarks/ sorted by size, then loop over them (sort -nr for largest)
-for file in $(find "$BENCHMARKS_DIR" -type f -exec du -b {} + | sort -n | head -n 10 | cut -f2); do
-    # Get the first 5 characters of the file name
+echo "Processing files from index $START_INDEX to $END_INDEX..."
+
+# Find all files, get their size, sort them, and select the desired range
+for file in $(find "$BENCHMARKS_DIR" -type f -exec du -b {} + | sort -nr | sed -n "${START_INDEX},${END_INDEX}p" | cut -f2-); do
     base_name=$(basename "$file")
     result_name="${base_name:0:5}.res"
-
-    # Run minisat and save the result
+    echo "Running minisat on $file..."
     ./minisat/core/minisat "$file" "$RESULTS_DIR/$result_name"
 done
+
+echo "Done."
