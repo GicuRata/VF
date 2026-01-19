@@ -9,7 +9,7 @@ CSV_FILE = 'benchmark-competition-results/detailed_main.csv'
 BENCHMARKS_DIR = 'benchmarks'
 RESULTS_DIR = 'results'
 MINISAT_BIN = './minisat/core/minisat'
-TOP_N = 20
+TOP_N = 40
 
 def get_average_time(row):
     """calculates the average time from the solver columns"""

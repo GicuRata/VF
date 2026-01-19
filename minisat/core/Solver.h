@@ -138,6 +138,14 @@ public:
     uint64_t solves, starts, decisions, rnd_decisions, propagations, conflicts;
     uint64_t dec_vars, clauses_literals, learnts_literals, max_literals, tot_literals;
 
+    // LBD Heuristics:
+    int      computeLBD(const vec<Lit>& lits);
+    vec<int> lbd_queue;
+    int      lbd_queue_pos;
+    int      global_lbd_sum;
+    uint64_t conflicts_since_restart;
+    uint64_t lbd_count;
+
 protected:
 
     // Helper structures:

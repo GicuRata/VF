@@ -28,3 +28,5 @@ depend.mk
 # OS files
 .DS_Store
 Thumbs.db
+
+minisat_improvements.tex
