@@ -96,7 +96,13 @@ Solver::Solver() :
   , conflict_budget    (-1)
   , propagation_budget (-1)
   , asynch_interrupt   (false)
-{}
+{
+    lbd_queue.growTo(50);
+    lbd_queue_pos = 0;
+    global_lbd_sum = 0;
+    conflicts_since_restart = 0;
+    lbd_count = 0;
+}
 
 
 Solver::~Solver()
@@ -126,6 +132,22 @@ Var Solver::newVar(bool sign, bool dvar)
     trail    .capacity(v+1);
     setDecisionVar(v, dvar);
     return v;
+}
+
+
+int Solver::computeLBD(const vec<Lit>& lits) {
+    int nblevels = 0;
+    for(int i=0;i<lits.size();i++) {
+        int l = level(var(lits[i]));
+        if (seen[l] != 1) {
+            seen[l] = 1;
+            nblevels++;
+        }
+    }
+    for(int i=0;i<lits.size();i++) {
+        seen[level(var(lits[i]))] = 0;
+    }
+    return nblevels;
 }
 
 
@@ -520,7 +542,10 @@ struct reduceDB_lt {
     ClauseAllocator& ca;
     reduceDB_lt(ClauseAllocator& ca_) : ca(ca_) {}
     bool operator () (CRef x, CRef y) { 
-        return ca[x].size() > 2 && (ca[y].size() == 2 || ca[x].activity() < ca[y].activity()); } 
+        Clause& cx = ca[x];
+        Clause& cy = ca[y];
+        if (cx.lbd() != cy.lbd()) return cx.lbd() > cy.lbd();
+        return cx.size() > 2 && (cy.size() == 2 || cx.activity() < cy.activity()); } 
 };
 void Solver::reduceDB()
 {
@@ -532,7 +557,7 @@ void Solver::reduceDB()
     // and clauses with activity smaller than 'extra_lim':
     for (i = j = 0; i < learnts.size(); i++){
         Clause& c = ca[learnts[i]];
-        if (c.size() > 2 && !locked(c) && (i < learnts.size() / 2 || c.activity() < extra_lim))
+        if (c.lbd() > 2 && c.size() > 2 && !locked(c) && (i < learnts.size() / 2 || c.activity() < extra_lim))
             removeClause(learnts[i]);
         else
             learnts[j++] = learnts[i];
@@ -628,16 +653,39 @@ lbool Solver::search(int nof_conflicts)
 
             learnt_clause.clear();
             analyze(confl, learnt_clause, backtrack_level);
+            
+            // COMPUTE LBD
+            int lbd = computeLBD(learnt_clause);
+            lbd_queue[lbd_queue_pos++] = lbd;
+            if (lbd_queue_pos == lbd_queue.size()) lbd_queue_pos = 0;
+            global_lbd_sum += lbd;
+            lbd_count++;
+
             cancelUntil(backtrack_level);
 
             if (learnt_clause.size() == 1){
                 uncheckedEnqueue(learnt_clause[0]);
             }else{
                 CRef cr = ca.alloc(learnt_clause, true);
+                ca[cr].lbd(lbd); // Store LBD
                 learnts.push(cr);
                 attachClause(cr);
                 claBumpActivity(ca[cr]);
                 uncheckedEnqueue(learnt_clause[0], cr);
+            }
+            
+            // LBD Restart strategy
+            if (lbd_count > 50) {
+                double avg_lbd = 0;
+                for(int i=0;i<lbd_queue.size();i++) avg_lbd += lbd_queue[i];
+                avg_lbd /= lbd_queue.size();
+                double global_avg = (double)global_lbd_sum / lbd_count;
+                
+                if (avg_lbd * 0.8 > global_avg) {
+                     progress_estimate = progressEstimate();
+                     cancelUntil(0);
+                     return l_Undef; 
+                }
             }
 
             varDecayActivity();
