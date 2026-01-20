@@ -10,6 +10,7 @@ BENCHMARKS_DIR = 'benchmarks'
 RESULTS_DIR = 'results'
 MINISAT_BIN = './minisat/core/minisat'
 TOP_N = 40
+START_N = 20
 
 def get_average_time(row):
     """calculates the average time from the solver columns"""
@@ -53,9 +54,9 @@ def main():
     benchmark_stats.sort(key=lambda x: x['avg_time'])
 
     # select top n
-    top_benchmarks = benchmark_stats[:TOP_N]
+    top_benchmarks = benchmark_stats[START_N : START_N + TOP_N]
 
-    print(f"Found {len(top_benchmarks)} benchmarks. Running top {TOP_N}...")
+    print(f"Found {len(top_benchmarks)} benchmarks. Running {len(top_benchmarks)} benchmarks starting from index {START_N}...")
     
     # 5 minutes timeout
     TIMEOUT_SECONDS = 300

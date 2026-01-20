@@ -126,8 +126,7 @@ class Clause {
         unsigned learnt    : 1;
         unsigned has_extra : 1;
         unsigned reloced   : 1;
-        unsigned lbd       : 26;
-        unsigned size      : 26; }                            header;
+        unsigned size      : 27; }                            header;
     union { Lit lit; float act; uint32_t abs; CRef rel; } data[0];
 
     friend class ClauseAllocator;
@@ -140,7 +139,6 @@ class Clause {
         header.has_extra = use_extra;
         header.reloced   = 0;
         header.size      = ps.size();
-        header.lbd       = 0;
 
         for (int i = 0; i < ps.size(); i++)
             data[i].lit = ps[i];
@@ -182,8 +180,6 @@ public:
 
     float&       activity    ()              { assert(header.has_extra); return data[header.size].act; }
     uint32_t     abstraction () const        { assert(header.has_extra); return data[header.size].abs; }
-    int          lbd         () const        { return header.lbd; }
-    void         lbd         (int lbd)       { header.lbd = lbd; }
 
     Lit          subsumes    (const Clause& other) const;
     void         strengthen  (Lit p);

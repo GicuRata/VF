@@ -14,14 +14,17 @@ def parse_time(filepath):
             match = re.search(r'Execution Time:\s*([\d\.]+)s', content)
             if match:
                 return float(match.group(1))
+            
+            match_timeout = re.search(r'Timeout after (\d+)s', content)
+            if match_timeout:
+                return float(match_timeout.group(1))
     except Exception as e:
         print(f"Eroare parsare {filepath}: {e}")
     return None
 
 def main():
-    old_times = []
-    new_times = []
-
+    results = []
+    
     for filename in os.listdir(NEW_DIR):
         if not filename.endswith('.res'):
             continue
@@ -33,16 +36,19 @@ def main():
         t_old = parse_time(old_path)
 
         if t_new is not None and t_old is not None:
-            new_times.append(t_new)
-            old_times.append(t_old)
+            if t_old >= 300 and t_new >= 300:
+                continue
+            results.append((t_old, t_new))
             print(f"{filename}: Vechi={t_old}s, Nou={t_new}s")
 
-    if not new_times:
+    if not results:
         print("Nu s-au gasit comparatii valide.")
         return
 
-    old_times.sort()
-    new_times.sort()
+    results.sort(key=lambda x: x[0])
+    
+    old_times = [r[0] for r in results]
+    new_times = [r[1] for r in results]
 
     x_old = list(range(1, len(old_times) + 1))
     x_new = list(range(1, len(new_times) + 1))
@@ -52,7 +58,7 @@ def main():
     plt.plot(x_new, new_times, 'g-o', label='Solver Nou')
     plt.xlabel('Numar de instante rezolvate')
     plt.ylabel('Timp (s)')
-    plt.title('Compararea rezultatelor (Cactus Plot - Liniar)')
+    plt.title('Compararea rezultatelor (Liniar)')
     plt.legend()
     plt.grid(True)
     plt.savefig('plot_clasic_liniar.png')
@@ -63,7 +69,7 @@ def main():
     plt.plot(x_new, new_times, 'g-o', label='Solver Nou')
     plt.xlabel('Numar de instante rezolvate')
     plt.ylabel('Timp (s)')
-    plt.title('Compararea rezultatelor (Cactus Plot - Logaritmic)')
+    plt.title('Compararea rezultatelor (Logaritmic)')
     plt.legend()
     plt.grid(True)
     plt.yscale('log')
